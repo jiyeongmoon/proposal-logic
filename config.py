@@ -1,10 +1,26 @@
 import os
 
 # Base Path Configuration
+INTERNAL_APP_DIR = os.path.dirname(os.path.abspath(__file__))
 # 드롭박스 동기화 폴더 내 프로젝트 위치 설정 (환경 변수가 있으면 우선 사용, 없으면 로컬 기본값 사용)
 DEFAULT_LOCAL_ROOT = r"c:\Users\user\공간환경계획연구실 Dropbox\04_Knowledge_Base\00_Obsidian\moon"
-PROJECT_ROOT = os.getenv("PROJECT_ROOT", DEFAULT_LOCAL_ROOT) if os.path.exists(DEFAULT_LOCAL_ROOT) else os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+if os.path.exists(DEFAULT_LOCAL_ROOT):
+    PROJECT_ROOT = os.getenv("PROJECT_ROOT", DEFAULT_LOCAL_ROOT)
+else:
+    # 클라우드/리눅스 환경: 앱 실행 경로를 프로젝트 루트로 설정 (루트 디렉토리 / 접근 방지)
+    PROJECT_ROOT = INTERNAL_APP_DIR
+
 PROPOSAL_BASE_DIR = os.path.join(PROJECT_ROOT, "01_프로젝트_실무_산출물")
+
+# 클라우드 환경 배포를 위해 출력 폴더가 없을 경우 자동 생성 시도
+if not os.path.exists(PROPOSAL_BASE_DIR):
+    try:
+        os.makedirs(PROPOSAL_BASE_DIR, exist_ok=True)
+    except:
+        # 권한 문제 발생 시 가변적인 임시 폴더로 변경
+        PROPOSAL_BASE_DIR = os.path.join(INTERNAL_APP_DIR, "output_data")
+        os.makedirs(PROPOSAL_BASE_DIR, exist_ok=True)
 
 # Folder Structure Configuration
 # 나래공간 8대 표준 하위 폴더 체계
@@ -34,7 +50,6 @@ APP_SUBTITLE = "공간환경계획연구실(Moon) 업무자동화 프로젝트"
 
 # Data Path Configuration
 # 내부 스크립트 기반 상대 경로 우선 탐색
-INTERNAL_APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(INTERNAL_APP_DIR, "data", "master_db.xlsx")
 TEMPLATE_DIR = os.path.join(INTERNAL_APP_DIR, "templates")
 
