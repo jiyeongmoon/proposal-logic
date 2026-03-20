@@ -10,8 +10,12 @@ from io import BytesIO
 from datetime import datetime
 from pptx import Presentation
 from pptx.util import Inches, Pt
-import tkinter as tk
-from tkinter import filedialog
+try:
+    import tkinter as tk
+    from tkinter import filedialog
+    HAS_TKINTER = True
+except ImportError:
+    HAS_TKINTER = False
 
 # 프로젝트 루트 경로 추가
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -103,12 +107,17 @@ def sync_project_state():
 
 def select_folder_native():
     """윈도우 표준 폴더 선택창 오픈 (로컬 실행 환경)"""
-    root = tk.Tk()
-    root.withdraw()
-    root.attributes('-topmost', True)
-    folder_path = filedialog.askdirectory(initialdir=st.session_state.proposal_base_dir)
-    root.destroy()
-    return folder_path
+    if not HAS_TKINTER:
+        return None
+    try:
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes('-topmost', True)
+        folder_path = filedialog.askdirectory(initialdir=st.session_state.proposal_base_dir)
+        root.destroy()
+        return folder_path
+    except:
+        return None
 
 def find_folder(base_path, pattern):
     """지정한 패턴(예: '07*')에 매칭되는 하위 폴더 경로 반환"""
@@ -286,13 +295,15 @@ def render_sidebar():
         # --- 프로젝트 탐색 및 생성 (Drill-down) ---
         with st.expander("📂 프로젝트/경로 관리", expanded=False):
             # 1. 경로지정
-            st.caption("📍 경로지정")
-            col1, col2 = st.columns([0.8, 0.2])
-            with col1: st.markdown(f"<code style='font-size:0.75rem;'>.../{os.path.basename(st.session_state.proposal_base_dir)}</code>", unsafe_allow_html=True)
-            with col2: 
-                if st.button("📁", help="윈도우 창에서 폴더 선택"): 
-                    picked = select_folder_native()
-                    if picked: st.session_state.proposal_base_dir = picked; st.rerun()
+            if HAS_TKINTER:
+                col1, col2 = st.columns([0.8, 0.2])
+                with col1: st.markdown(f"<code style='font-size:0.75rem;'>.../{os.path.basename(st.session_state.proposal_base_dir)}</code>", unsafe_allow_html=True)
+                with col2: 
+                    if st.button("📁", help="윈도우 창에서 폴더 선택"): 
+                        picked = select_folder_native()
+                        if picked: st.session_state.proposal_base_dir = picked; st.rerun()
+            else:
+                st.text_input("📍 기준 경로 (Cloud)", key="proposal_base_dir", help="클라우드 환경에서는 폴더 선택기 대신 직접 경로를 입력해 주세요.")
             
             # 2. 신규프로젝트 생성
             st.divider()
