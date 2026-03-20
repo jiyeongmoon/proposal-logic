@@ -1,0 +1,10 @@
+streamlit
+pandas
+google-generativeai
+python-docx
+pdfplumber
+python-pptx
+Pillow
+requests
+pydantic
+typing_extensions
